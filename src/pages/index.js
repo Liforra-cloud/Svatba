@@ -1,11 +1,78 @@
-// src/pages/index.js (úryvek)
+// src/pages/index.js
 
 import { useState, useRef } from 'react'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 
 export default function Home() {
-  // ...stavy a funkce
+  const [uploading, setUploading] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  // Reference na skryté <input> elementy
+  const cameraInputRef = useRef(null)
+  const folderInputRef = useRef(null)
+
+  // Jednoduchá funkce pro nahrání jednoho souboru
+  const uploadSingleFile = async (file) => {
+    const formData = new FormData()
+    formData.append('photo', file)
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      if (!res.ok) throw new Error('Server vrátil chybu')
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  // Handler pro pořízení jedné fotky (kamera)
+  const handleCameraChange = async (e) => {
+    setMessage('')
+    setError('')
+    const file = e.target.files[0]
+    if (!file) return
+
+    setUploading(true)
+    const success = await uploadSingleFile(file)
+    if (success) {
+      setMessage('Fotka byla úspěšně nahrána!')
+    } else {
+      setError('Nahrání se nezdařilo. Zkuste to prosím znovu.')
+    }
+    setUploading(false)
+    e.target.value = '' // reset input
+  }
+
+  // Handler pro výběr více souborů (složka)
+  const handleFolderChange = async (e) => {
+    setMessage('')
+    setError('')
+    const files = Array.from(e.target.files)
+    if (files.length === 0) return
+
+    setUploading(true)
+    let allSuccess = true
+
+    for (const file of files) {
+      const success = await uploadSingleFile(file)
+      if (!success) {
+        allSuccess = false
+      }
+    }
+
+    if (allSuccess) {
+      setMessage('Všechny soubory byly úspěšně nahrány!')
+    } else {
+      setError('Některé soubory se nepodařilo nahrát. Zkontrolujte prosím konzoli.')
+    }
+    setUploading(false)
+    e.target.value = '' // reset input
+  }
 
   return (
     <>
