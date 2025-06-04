@@ -1,87 +1,17 @@
-// src/pages/index.js
+// src/pages/index.js (úryvek)
 
 import { useState, useRef } from 'react'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 
 export default function Home() {
-  const [uploading, setUploading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
-
-  // Refs na oba skryté inputy
-  const cameraInputRef = useRef(null)
-  const folderInputRef = useRef(null)
-
-  // Funkce pro nahrání jednoho souboru
-  const uploadSingleFile = async (file) => {
-    const formData = new FormData()
-    formData.append('photo', file)
-
-    try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-      if (!res.ok) {
-        throw new Error('Server vrátil chybu')
-      }
-      return true
-    } catch {
-      return false
-    }
-  }
-
-  // Při změně v camera input (jedna fotka z kamery)
-  const handleCameraChange = async (e) => {
-    setMessage('')
-    setError('')
-    const file = e.target.files[0]
-    if (!file) return
-
-    setUploading(true)
-    const success = await uploadSingleFile(file)
-    if (success) {
-      setMessage('Fotka byla úspěšně nahrána!')
-    } else {
-      setError('Nahrání se nezdařilo. Zkuste to prosím znovu.')
-    }
-    setUploading(false)
-    e.target.value = '' // reset
-  }
-
-  // Při změně v folder input (více souborů)
-  const handleFolderChange = async (e) => {
-    setMessage('')
-    setError('')
-    const files = Array.from(e.target.files)
-    if (files.length === 0) return
-
-    setUploading(true)
-    let allSuccess = true
-
-    for (const file of files) {
-      const success = await uploadSingleFile(file)
-      if (!success) {
-        allSuccess = false
-      }
-    }
-
-    if (allSuccess) {
-      setMessage('Všechny soubory byly úspěšně nahrány!')
-    } else {
-      setError('Některé soubory se nepodařilo nahrát. Zkontrolujte prosím konzoli.')
-    }
-    setUploading(false)
-    e.target.value = '' // reset
-  }
+  // ...stavy a funkce
 
   return (
     <>
       <Head>
         <title>Svatební album – Upload</title>
         <meta name="description" content="Přidejte svatební fotku do sdíleného alba" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className={styles.container}>
@@ -91,13 +21,12 @@ export default function Home() {
             <strong>Přidejte svatební fotku do sdíleného alba.</strong>
           </p>
 
-          {/* Tlačítko pro složku (více souborů) */}
+          {/* Ikonka složky (více souborů) */}
           <label
             className={styles.iconButton}
             onClick={() => folderInputRef.current.click()}
             title="Vyberte více souborů"
           >
-            {/* SVG ikona složky */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="28"
@@ -119,13 +48,12 @@ export default function Home() {
             disabled={uploading}
           />
 
-          {/* Tlačítko pro fotoaparát (jedna fotka) */}
+          {/* Ikonka fotoaparátu (jedna fotka) */}
           <label
             className={styles.iconButton}
             onClick={() => cameraInputRef.current.click()}
             title="Pořídit novou fotku"
           >
-            {/* SVG ikona foťáku */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="28"
@@ -133,9 +61,7 @@ export default function Home() {
               fill="currentColor"
               viewBox="0 0 16 16"
             >
-              <path d="M8 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM2.5 8a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0z" />
-              <path d="M4.318 1.318a.5.5 0 1 1 .727.686A3.5 3.5 0 0 0 8 3a3.5 3.5 0 0 0 2.955-1.318.5.5 0 1 1 .727.686A4.5 4.5 0 0 1 8 4a4.5 4.5 0 0 1-3.682-2.682.5.5 0 0 1 .727-.686z" />
-              <path d="M3 2.5a.5.5 0 0 1 .5-.5h1.635a.5.5 0 0 1 .37.168L6.586 3H9.414l1.081-1.332a.5.5 0 0 1 .37-.168H12.5a.5.5 0 0 1 .5.5V4h-1V2.5H3V4H2V2.5z" />
+              <path d="M10.5 2h-5l-.5-.5h-3L1 2H0v2h1v8a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1V4h1V2h-1l-1-1h-3l-.5.5zM8 12a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7zm0-1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
             </svg>
           </label>
           <input
