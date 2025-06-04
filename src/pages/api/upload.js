@@ -1,5 +1,6 @@
 import formidable from 'formidable';
 import { google } from 'googleapis';
+import fs from 'fs';
 
 export const config = {
   api: {
@@ -8,6 +9,10 @@ export const config = {
 };
 
 const uploadToGoogleDrive = async (fileData, fileName) => {
+  console.log('DEBUG: GOOGLE_CLIENT_EMAIL =', process.env.GOOGLE_CLIENT_EMAIL);
+  console.log('DEBUG: GOOGLE_PRIVATE_KEY starts =', process.env.GOOGLE_PRIVATE_KEY?.slice(0, 30), '…');
+  console.log('DEBUG: GOOGLE_DRIVE_FOLDER_ID =', process.env.GOOGLE_DRIVE_FOLDER_ID);
+
   const auth = new google.auth.JWT(
     process.env.GOOGLE_CLIENT_EMAIL,
     null,
@@ -36,16 +41,24 @@ export default async function handler(req, res) {
   form.parse(req, async (err, fields, files) => {
     if (err) {
       console.error('Error parsing form:', err);
-      return res.status(500).json({ error: 'Error parsing the files' });
+      return res.status(500).json({ error: 'Chyba při zpracování souboru' });
     }
+
+    console.log('DEBUG: Parsed fields =', fields);
+    console.log('DEBUG: Parsed files =', files);
 
     try {
       const file = files.photo;
-      const result = await uploadToGoogleDrive(file, file.originalFilename);
+      console.log('DEBUG: Uploading file =', file.originalFilename);
+      const result = await uploadToGoogleDrive(
+        file,
+        file.originalFilename || `photo_${Date.now()}.jpg`
+      );
+      console.log('DEBUG: Upload result =', result);
       res.status(200).json({ data: result });
     } catch (error) {
       console.error('Error uploading to Drive:', error);
-      res.status(500).json({ error: 'Error uploading to Google Drive' });
+      res.status(500).json({ error: 'Chyba při uploadu na Google Drive' });
     }
   });
 }
