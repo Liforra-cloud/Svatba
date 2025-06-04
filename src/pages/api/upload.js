@@ -4,24 +4,27 @@ import fs from 'fs';
 
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // musí být false, aby formidable mohl zpracovat file upload
   },
 };
 
 const uploadToGoogleDrive = async (fileData, fileName) => {
   console.log('DEBUG: GOOGLE_CLIENT_EMAIL =', process.env.GOOGLE_CLIENT_EMAIL);
-  console.log('DEBUG: GOOGLE_PRIVATE_KEY starts =', process.env.GOOGLE_PRIVATE_KEY?.slice(0, 30), '…');
+  console.log('DEBUG: privKey starts =', process.env.GOOGLE_PRIVATE_KEY?.slice(0, 30), '…');
   console.log('DEBUG: GOOGLE_DRIVE_FOLDER_ID =', process.env.GOOGLE_DRIVE_FOLDER_ID);
 
-  const auth = new google.auth.JWT(
-    process.env.GOOGLE_CLIENT_EMAIL,
-    null,
-    process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    ['https://www.googleapis.com/auth/drive']
-  );
+  // Použijeme GoogleAuth místo JWT kvůli chybě ERR_OSSL_UNSUPPORTED
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    },
+    scopes: ['https://www.googleapis.com/auth/drive'],
+  });
+  const authClient = await auth.getClient();
+  const drive = google.drive({ version: 'v3', auth: authClient });
 
-  const drive = google.drive({ version: 'v3', auth });
-
+  // Vytvoříme soubor v cílové složce
   const response = await drive.files.create({
     requestBody: {
       name: fileName,
